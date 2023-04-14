@@ -32,8 +32,8 @@
 
 
     <!-- 准备好一个容器 -->
-    <div id="root">
-        <h1>hello, {{name}}</h1>
+    <div id="demo">
+        <h1>hello, {{name.toUpperCase()}}, {{address}}</h1>
     </div>
 
     <script>
@@ -41,9 +41,10 @@
         
         // 创建Vue实例
         const x = new Vue({
-            el: '#root',    // el用于指定当前Vue实例为那个容器服务，值通常为css选择器字符串
+            el: '#demo',    // el用于指定当前Vue实例为那个容器服务，值通常为css选择器字符串
             data:{  // data中用于存储数据，数据提供el所指定的容器去使用，值我们暂时携程一个对象。
                 name: "Vue",
+                address: "贵州"
             }
         })
     </script>
