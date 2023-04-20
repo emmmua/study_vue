@@ -1,0 +1,27 @@
+<!-- 定义文档类型 -->
+<!DOCTYPE html>
+<!-- html 元素，指定语言为无（因为空格符没有意义） -->
+<html lang="">
+  <head>
+    <!-- 定义字符集 -->
+    <meta charset="utf-8">
+    <!-- 让 IE 浏览器使用最新的引擎渲染网页 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 网页在不同设备上的显示比例 -->
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!-- 页面标题栏左侧图标 -->
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <!-- 页面标题 -->
+    <title><%= htmlWebpackPlugin.options.title %></title>
+  </head>
+  <body>
+    <!-- 当浏览器不支持JavaScript是，noscript中的元素就会被渲染 -->
+    <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <!-- Vue 应用将被挂载到的 DOM 元素 -->
+    <div id="app"></div>
+    <!-- 这里会自动导入构建后的文件 -->
+    <!-- built files will be auto injected -->
+  </body>
+</html>
