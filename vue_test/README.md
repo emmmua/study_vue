@@ -15,7 +15,7 @@
 	│   │── main.js: 入口文件
 	├── .gitignore: git版本管制忽略的配置
 	├── babel.config.js: babel的配置文件
-	├── package.json: 应用包配置文件 
+	├── package.json: 应用包配置文件
 	├── README.md: 应用描述文件
 	├── package-lock.json：包版本控制文件
 
@@ -230,6 +230,10 @@
       mounted() {
         this.$bus.$on('xxxx',this.demo)
       }
+      ......
+      beforeDestroy() {
+          this.$bus.$off('xxxx')
+      }
       ```
 
    2. 提供数据：```this.$bus.$emit('xxxx',数据)```
@@ -254,7 +258,7 @@
       }
       ......
       mounted() {
-        this.pid = pubsub.subscribe('xxx',this.demo) //订阅消息
+        this.pid = pubsub.subscribe('xxx',this.demo) //订阅消息，this.demo改成箭头函数也是一样的效果，不使用箭头函数的话，this不维护
       }
       ```
 
@@ -272,7 +276,7 @@
 
 1. 作用：在插入、更新或移除 DOM元素时，在合适的时候给元素添加样式类名。
 
-2. 图示：<img src="https://img04.sogoucdn.com/app/a/100520146/5990c1dff7dc7a8fb3b34b4462bd0105" style="width:60%" />
+2. 图示：![](.\public\Vue封装过度与动画.png)
 
 3. 写法：
 
@@ -1065,5 +1069,5 @@ module.exports = {
    1. 地址干净，美观 。
    2. 兼容性和hash模式相比略差。
    3. 应用部署上线时需要后端人员支持，解决刷新页面服务端404的问题。
-	 
+	
 	 
