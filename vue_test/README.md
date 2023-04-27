@@ -300,6 +300,10 @@
       ```
 
    3. 备注：若有多个元素需要过度，则需要使用：```<transition-group>```，且每个元素都要指定```key```值。
+   
+   可以使用css动画库，这里提供一个
+   
+   [Animate.css | https://animate.style/](https://animate.style/)
 
 ## vue脚手架配置代理
 

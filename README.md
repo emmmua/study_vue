@@ -11,4 +11,4 @@
 目录结构
 
 - vue_basic：基础入门
-- vue_test：深入学习组件（[查看笔记](./vue_test/README.md)）
+- vue_test：深入学习组件（[查看笔记](./vue_test)）
