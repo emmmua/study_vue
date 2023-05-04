@@ -488,9 +488,6 @@ module.exports = {
                      }
                  </script>
          ```
-   ```
-   
-   ```
 
 ## Vuex
 
