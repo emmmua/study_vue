@@ -98,8 +98,8 @@
     对象.install = function (Vue, options) {
         // 1. 添加全局过滤器
         Vue.filter(....)
-    
-        // 2. 添加全局指令
+        
+        // 2.定义全局指令局指令
         Vue.directive(....)
     
         // 3. 配置全局混入(合)
@@ -495,6 +495,8 @@ module.exports = {
 
 ​		在Vue中实现集中式状态（数据）管理的一个Vue插件，对vue应用中多个组件的共享状态进行集中式的管理（读/写），也是一种组件间通信的方式，且适用于任意组件间通信。
 
+![](..\资料（含课件）\02_原理图\vuex.png)
+
 ### 2.何时使用？
 
 ​		多个组件需要共享数据时
@@ -613,6 +615,8 @@ module.exports = {
 
 3. 组件中读取数据：```$store.getters.bigSum```
 
+4. 它不是一个必须使用的（所以官方图上也没有展示）
+
 ### 6.四个map方法的使用
 
 1. <strong>mapState方法：</strong>用于帮助我们映射```state```中的数据为计算属性
@@ -658,7 +662,7 @@ module.exports = {
        //靠mapActions生成：increment、decrement（对象形式）
        ...mapMutations({increment:'JIA',decrement:'JIAN'}),
        
-       //靠mapMutations生成：JIA、JIAN（对象形式）
+       //靠mapMutations生成：JIA、JIAN（数组形式）
        ...mapMutations(['JIA','JIAN']),
    }
    ```
@@ -679,6 +683,7 @@ module.exports = {
      actions: { ... },
      getters: {
        bigSum(state){
+          // 这里的state时当前countAbout中的state
           return state.sum * 10
        }
      }
@@ -739,6 +744,7 @@ module.exports = {
 
 1. 理解： 一个路由（route）就是一组映射关系（key - value），多个路由需要路由器（router）进行管理。
 2. 前端路由：key是路径，value是组件。
+3. 后端路由：value是function，用于处理**请求路径**找到匹配的**函数**来处理(@RequestMapping)
 
 ### 1.基本使用
 
@@ -791,6 +797,7 @@ module.exports = {
 2. 通过切换，“隐藏”了的路由组件，默认是被销毁掉的，需要的时候再去挂载。
 3. 每个组件都有自己的```$route```属性，里面存储着自己的路由信息。
 4. 整个应用只有一个router，可以通过组件的```$router```属性获取到。
+5. 在配置routers时，引入的compoment大小写编译器可能不报错，但是vue编译会报错。
 
 ### 3.多级路由（多级路由）
 
