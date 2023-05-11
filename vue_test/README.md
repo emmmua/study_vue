@@ -398,6 +398,43 @@ module.exports = {
 1. 优点：可以配置多个代理，且可以灵活的控制请求是否走代理。
 2. 缺点：配置略微繁琐，请求资源时必须加前缀。
 
+### 使用 Vue CLI 提供的 `defineConfig` 方法来创建配置对象（视频上使用的案例）
+
+其实就是通过使用 Vue CLI 提供的 `defineConfig` 方法来创建一个配置对象。该方法可以获取到 Vue CLI 默认的配置信息，并且支持传入一个函数作为参数。在这个函数中，可以对默认配置信息进行修改和扩展，并且可以使用 Vue CLI 提供的 API 来自动生成某些配置信息。
+
+下面是使用`defineConfig`方法来创建配置对象
+
+```javascript
+const { defineConfig } = require('@vue/cli-service');
+
+module.exports = defineConfig(config => {
+  // 添加自定义插件
+  config.plugins.push(new MyCustomPlugin());
+  
+  // 自动设置别名
+  config.resolve.alias.set('utils', path.resolve(__dirname, 'src/utils'));
+
+  // 对开发服务器进行详细配置（方式二）
+  config.devServer = {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        pathRewrite: {'^/api': ''}
+      }
+    }
+  };
+
+  return config;
+});
+```
+
+在这个示例代码中，我们传给 `defineConfig` 方法一个函数作为参数，并将其命名为 `config`。在这个函数中，我们对 Vue CLI 默认的配置信息进行了一些修改和扩展，如添加自定义插件、自动设置别名和对开发服务器进行详细配置等。
+
+其中最重要的部分是使用 `config.resolve.alias.set()` 方法来设置别名，以便更方便地引用项目中的模块。另外，还对开发服务器进行了详细的配置，这里采用的是第二种方式，即使用对象字面量的方式。
+
+总之，使用 `defineConfig` 方法可以更灵活和方便地定制化应用程序的行为和功能，并能够充分利用 Vue CLI 所提供的工具和 API。
+
 ## 插槽
 
 1. 作用：让父组件可以向子组件指定位置插入html结构，也是一种组件间通信的方式，适用于 <strong style="color:red">父组件 ===> 子组件</strong> 。
@@ -488,6 +525,16 @@ module.exports = {
                      }
                  </script>
          ```
+         
+         - 在父组件中，分别定义了两个`<Category>`组件，并向其传递了不同的模板。模板都使用了`slot-scope`或`scope`来指定变量名并向子组件传递数据。
+         
+         - 在子组件中，定义了一个`games`数组，并将该数组通过`slot`传递给父组件。父组件可以在模板内部使用`slot-scope`或`scope`指定的变量名来访问该数组，并生成不同的内容。
+         
+         - 具体来说，第一个模板使用了`<ul>`和`<li>`标签来生成一个无序列表，循环遍历了`scopeData.games`数组并将每个元素作为列表项展示；而第二个模板则使用了`<h4>`标签来生成一个标题，同样循环遍历了`scopeData.games`数组并将每个元素作为一个标题展示。
+         
+         - 最终，在子组件的渲染过程中，父组件会根据不同的模板来生成不同的内容，从而实现了子组件内容的自定义。
+         
+         - 总之，作用域插槽提供了一种非常灵活的机制，可以帮助我们将组件的渲染逻辑与组件本身解耦，实现更加清晰和高效的代码。
 
 ## Vuex
 
@@ -1019,7 +1066,7 @@ module.exports = {
    })
    this.$router.forward() //前进
    this.$router.back() //后退
-   this.$router.go() //可前进也可后退
+   this.$router.go() //可前进也可后退（传递数字，根据正负前进和后退）
    ```
 
 ### 10.缓存路由组件
@@ -1034,80 +1081,268 @@ module.exports = {
    </keep-alive>
    ```
 
+
+
+- `<keep-alive>`是一个抽象组件，会将其包裹的内容存储在内存中，并在需要时缓存或销毁它们。
+
+- `include="News"`表示只有名称为"News"的组件才应该被缓存。如果不指定`include`属性，则所有组件都将被缓存。
+
+- `<router-view>`用于渲染当前路由匹配到的组件。
+
+因此，这段代码的作用是：当页面切换到名称为"News"的组件时，它会被缓存起来，当用户再次浏览到该组件时，直接从缓存中读取，提高了页面的响应速度和用户体验。
+
+***
+
+如果要缓存多个组件，可以在`<keep-alive>`的`include`属性中指定一个数组来包含多个组件的名称。例如：
+
+
+```html
+<keep-alive :include="['News', 'Article', 'Comment']">
+  <router-view></router-view>
+</keep-alive>
+```
+
+
+在这个例子中，会将名为"News"、"Article"和"Comment"的三个组件都缓存起来。如果需要缓存更多的组件，只需要将它们的名称放入数组即可。
+
+
+注意：当使用数组形式进行多个组件的缓存时，Vue.js会根据它们在数组中的顺序依次匹配，如果找到匹配的组件，则会缓存它并停止继续匹配，因此，组件的顺序是有影响的，需要根据实际需求进行调整。
+
 ### 11.两个新的生命周期钩子
 
-1. 作用：路由组件所独有的两个钩子，用于捕获路由组件的激活状态。
-2. 具体名字：
-   1. ```activated```路由组件被激活时触发。
-   2. ```deactivated```路由组件失活时触发。
+1. 作用：`activated`和`deactivated`是Vue.js中的两个生命周期钩子函数，它们在`<keep-alive>`组件中使用，用于控制被缓存的组件的激活和停用。
+2. 功能分别是：
+   1. `activated`: 被缓存的组件激活时调用，可以在这里执行一些需要在组件被重新渲染前进行的操作，比如获取最新数据、更新状态等。（激活钩子）
+   2. `deactivated`: 被缓存的组件停用时调用，可以在这里执行一些需要在组件被缓存前进行的操作，比如保存当前状态、清空数据等。（失活钩子）
+
+> 具体来说，当一个被缓存的组件被切换到时，会触发`activated`钩子函数；当一个被缓存的组件离开时，会触发`deactivated`钩子函数。
+
+***
+
+使用场景：`<keep-alive>`组件通常用于缓存页面中经常切换的组件，以提高页面的响应速度和用户体验。但是有些情况下，缓存的组件可能需要在每次被重新渲染前或者被缓存前执行一些特定的操作，例如：
+
+- 在页面切换到某个组件时，需要从服务器获取最新的数据。
+- 当一个组件被缓存时，需要保存当前选中的状态，以便下次缓存时可以恢复。
+- 当一个组件被停用时，需要将一些数据清空或重置。
+
+在这些情况下，就可以使用`activated`和`deactivated`钩子函数来实现这些操作。
 
 ### 12.路由守卫
 
-1. 作用：对路由进行权限控制
+作用：路由守卫的作用是对即将发生的路由变化或已经发生的路由变化进行控制和管理。Vue Router 提供了全局守卫、独享守卫和组件内守卫三种类型的路由守卫。
 
-2. 分类：全局守卫、独享守卫、组件内守卫
+通过使用路由守卫，我们可以实现以下功能：
 
-3. 全局守卫:
+- 权限验证：在用户访问某些页面时，需要判断用户是否有访问权限。如果用户没有权限访问该页面，可以通过路由守卫拦截路由跳转，并弹出提示信息。
+- 记录浏览历史：在用户浏览网站时，需要记录用户的浏览历史。通过路由守卫，在每次路由变化时记录浏览历史。
+- 异步组件处理：在使用异步组件时，需要在组件加载完成之前显示一些占位信息。通过路由守卫，在异步组件加载完成之前显示占位信息。
+- 路由重定向：在用户访问某个路径时，需要将用户重定向到其他路径。通过路由守卫，可以在路由跳转之前进行重定向操作。
 
-   ```js
-   //全局前置守卫：初始化时执行、每次路由切换前执行
-   router.beforeEach((to,from,next)=>{
-   	console.log('beforeEach',to,from)
-   	if(to.meta.isAuth){ //判断当前路由是否需要进行权限控制
-   		if(localStorage.getItem('school') === 'atguigu'){ //权限控制的具体规则
-   			next() //放行
-   		}else{
-   			alert('暂无权限查看')
-   			// next({name:'guanyu'})
-   		}
-   	}else{
-   		next() //放行
-   	}
-   })
-   
-   //全局后置守卫：初始化时执行、每次路由切换后执行
-   router.afterEach((to,from)=>{
-   	console.log('afterEach',to,from)
-   	if(to.meta.title){ 
-   		document.title = to.meta.title //修改网页的title
-   	}else{
-   		document.title = 'vue_test'
-   	}
-   })
-   ```
+| 守卫类型   | 使用方法                                                     | 使用场景                                                     |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 全局守卫   | 通过 `router.beforeEach()` 方法注册回调函数、`router.afterEach()` 方法注册后置守卫、`router.beforeResolve()` 方法解析异步路由组件 | 可以用于验证用户是否已经登录、记录用户浏览记录等全局操作     |
+| 独享守卫   | 在具体的路由配置中使用 `beforeEnter` 方法注册回调函数        | 仅对该路由生效，可以用于验证当前用户的权限是否能够访问该路由 |
+| 组件内守卫 | 在组件内部使用 `beforeRouteEnter`、`beforeRouteUpdate` 和 `beforeRouteLeave` 方法注册回调函数 | 可以用于在组件内部做一些路由相关的处理操作                   |
 
-4. 独享守卫:
+Vue Router 提供了全局守卫、独享守卫和组件内守卫三种路由守卫。
 
-   ```js
-   beforeEnter(to,from,next){
-   	console.log('beforeEnter',to,from)
-   	if(to.meta.isAuth){ //判断当前路由是否需要进行权限控制
-   		if(localStorage.getItem('school') === 'atguigu'){
-   			next()
-   		}else{
-   			alert('暂无权限查看')
-   			// next({name:'guanyu'})
-   		}
-   	}else{
-   		next()
-   	}
-   }
-   ```
+- 全局守卫: 适用于全局性的路由验证和处理操作。可通过 `router.beforeEach()` 方法注册前置守卫回调函数，在路由跳转之前进行验证或者全局处理操作；可通过 `router.afterEach()` 方法注册后置守卫回调函数，在路由跳转之后进行操作；可通过 `router.beforeResolve()` 方法解析异步路由组件。
 
-5. 组件内守卫：
+- 独享守卫: 适用于对某个具体路由做权限验证和特殊处理等操作。可在具体的路由配置中使用 `beforeEnter` 方法注册回调函数。
 
-   ```js
-   //进入守卫：通过路由规则，进入该组件时被调用
-   beforeRouteEnter (to, from, next) {
-   },
-   //离开守卫：通过路由规则，离开该组件时被调用
-   beforeRouteLeave (to, from, next) {
-   }
-   ```
+- 组件内守卫: 适用于在组件内部做一些路由相关的处理操作。可在组件内部使用 `beforeRouteEnter`、`beforeRouteUpdate` 和 `beforeRouteLeave` 方法注册回调函数，分别对应组件被创建之前、组件复用时和组件离开时执行的回调函数。
 
-### 13.路由器的两种工作模式
+需要注意的是，在全局守卫和独享守卫中，需要调用 `next()` 方法，否则路由会一直停留在当前页面；在组件内守卫中，可以通过回调函数中的 `next()` 方法来控制路由跳转，并且在 `beforeRouteLeave` 钩子函数中无法阻止路由跳转。
+
+下面是各个守卫的使用示例：
+
+1. 全局守卫
+
+```javascript
+router.beforeEach((to, from, next) => {
+  // 在这里进行路由验证或者全局处理操作
+  next(); // 调用 next() 方法，继续路由跳转
+});
+
+router.afterEach((to, from) => {
+  // 在这里进行路由跳转之后的操作
+});
+
+router.beforeResolve((to, from, next) => {
+  // 在这里进行异步路由组件的解析
+  next(); // 调用 next() 方法，继续路由跳转
+});
+```
+
+2. 独享守卫
+
+```javascript
+{
+  path: '/user/:id',
+  component: User,
+  beforeEnter: (to, from, next) => {
+    // 在这里进行路由验证或者特殊处理操作
+    next(); // 调用 next() 方法，继续路由跳转
+  }
+}
+```
+
+3. 组件内守卫
+
+```javascript
+export default {
+  beforeRouteEnter(to, from, next) {
+    // 在组件还没有被渲染出来时执行，无法访问 this 实例
+    next();
+  },
+  beforeRouteUpdate(to, from, next) {
+    // 在组件复用时执行，可以访问 this 实例
+    next();
+  },
+  beforeRouteLeave(to, from, next) {
+    // 在组件离开时执行，可以访问 this 实例，但是无法阻止路由跳转
+    next();
+  }
+}
+```
+
+除了上述守卫之外，还有两种全局守卫。
+
+- `beforeResolve`: 在导航被确认之前，同时在所有组件内守卫和异步路由组件被解析之后调用。这可以用来确保在渲染组件之前，所有的异步组件都已经加载完毕。
+
+- `onError`: 当导航过程中出现未捕获的错误时调用。需要注意的是，如果在一个路由守卫中抛出了一个错误，此错误将会被传递到最后一个激活的全局错误处理程序。
+
+ #### 数据存储位置
+
+- 存储在 Vuex 中：适用于需要共享变量的情况，可以让不同组件之间共享变量，并且可以在全局守卫、独享守卫和组件内守卫中进行访问。由于需要安装和配置 Vuex，因此相对麻烦一些。
+
+```javascript
+// 首先，在 Vuex 中定义一个状态
+const state = {
+  isAuthenticated: false // 是否已经登录
+}
+...
+// 在需要进行变量判断的地方，通过 mutations 修改状态
+this.$store.commit('setAuthenticated', true);
+...
+// 在路由守卫中访问状态
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth && !store.state.isAuthenticated) {
+    next('/login');
+  } else {
+    next();
+  }
+});
+```
+
+- 存储在当前组件数据中：适用于只需要在当前组件进行变量判断的情况，可以在组件内部直接进行访问和修改，但是无法在其他组件和路由中共享变量。
+
+```javascript
+// 在组件的 data 选项中定义一个变量
+data() {
+  return {
+    isAuthenticated: false // 是否已经登录
+  }
+},
+...
+// 在需要进行变量判断的地方，修改变量的值
+this.isAuthenticated = true;
+...
+// 在组件内守卫中访问变量
+beforeRouteEnter(to, from, next) {
+  if (!this.isAuthenticated) {
+    next('/login');
+  } else {
+    next();
+  }
+}
+```
+
+- 存储在路由中：适用于只需要在当前路由进行变量判断的情况，可以在独享守卫和组件内守卫中进行访问。但是会导致路由配置变得臃肿，不易于维护。
+
+```javascript
+// 在路由配置中定义一个变量
+const routes = [
+  {
+    path: '/home',
+    component: Home,
+    meta: {
+      requiresAuth: true // 是否需要登录权限
+    }
+  },
+  // ...
+]
+...
+// 在需要进行变量判断的地方，通过 meta 属性修改变量的值
+this.$router.push({
+  path: '/home',
+  meta: {
+    requiresAuth: true,
+    isAuthenticated: true
+  }
+})
+// 在独享守卫和组件内守卫中访问变量
+beforeEnter(to, from, next) {
+  if (!to.meta.isAuthenticated) {
+    next('/login');
+  } else {
+    next();
+  }
+}
+
+beforeRouteEnter(to, from, next) {
+  if (!to.meta.isAuthenticated) {
+    next('/login');
+  } else {
+    next(vm => {
+      vm.isAuthenticated = to.meta.isAuthenticated;
+    });
+  }
+}
+```
+
+需要注意的是，在进行路由跳转之前，需要根据变量的值决定是否进行路由跳转，并且在组件内守卫中访问变量时，需要使用 `next` 方法的回调函数来更新组件的数据。另外，将变量存储在路由中会导致路由配置变得臃肿，不易于维护，因此建议在需要共享变量的情况下使用 Vuex 状态管理中心。
+
+### 13.路由器的两种工作模式 
+
+Vue Router 有两种工作模式：`hash` 模式和 `history` 模式。
+
+#### 1.`hash` 模式
+
+在 `hash` 模式中，URL 中的路径部分以 `#` 开头，并且后面紧跟着一个由路由器管理的字符串，hash值不会包含在 HTTP 请求中。例如，下面的 URL 表示访问 `/home` 路径：
+
+```
+http://localhost:8080/#/home
+```
+
+通过 `hash` 模式可以实现单页应用程序（SPA）的核心功能：在网页内部跳转而不需要刷新整个页面。当用户点击链接或者触发事件时，Vue Router 会解析 URL 中的 `hash` 部分，然后根据匹配的路由规则进行组件的渲染和显示。
+
+#### 2.`history` 模式
+
+在 `history` 模式中，URL 中的路径部分不再使用 `#` 符号，而是直接使用正常的路径。例如，下面的 URL 表示访问 `/home` 路径：
+
+```
+http://localhost:8080/home
+```
+
+通过 `history` 模式可以实现更加友好的 URL，同时也可以在浏览器历史记录中记录用户浏览的页面，从而使用户可以使用“前进”、“后退”按钮进行导航。
+
+要使用 `history` 模式，需要在创建 Vue Router 实例时配置 `mode: 'history'`，如下所示：
+
+```javascript
+const router = new VueRouter({
+  mode: 'history',
+  routes: [
+    ...
+  ]
+})
+```
+
+需要注意的是，在使用 `history` 模式时，需要后端服务器进行配置，以保证在刷新页面时能够正确地返回对应的页面。否则，可能会出现 404 错误或者其他问题。
 
 
+
+#### 两种模式比较
 
 1. 对于一个url来说，什么是hash值？—— #及其后面的内容就是hash值。
 2. hash值不会包含在 HTTP 请求中，即：hash值不会带给服务器。
@@ -1119,5 +1354,108 @@ module.exports = {
    1. 地址干净，美观 。
    2. 兼容性和hash模式相比略差。
    3. 应用部署上线时需要后端人员支持，解决刷新页面服务端404的问题。
-	
-	 
+
+## vue的打包命令
+
+使用 `npm` 工具的 `vue` 命令可以方便地创建和管理 Vue 项目。
+
+### 创建项目
+
+要创建一个新的 Vue 项目，可以使用以下命令：
+
+```bash
+# 全局安装 vue-cli
+npm install -g @vue/cli
+
+# 创建新项目
+vue create my-project
+```
+
+在上面的命令中，首先需要全局安装 `vue-cli` 工具。然后，在命令行中输入 `vue create my-project`，其中 `my-project` 是项目名称，会自动创建一个新的 Vue 项目，并且会提示选择一些配置项，比如 Babel、ESLint、CSS 预处理器等。
+
+### 运行项目
+
+创建完 Vue 项目后，可以使用以下命令来运行项目：
+
+```bash
+# 进入项目目录
+cd my-project
+
+# 启动开发服务器
+npm run serve
+```
+
+在上面的命令中，`npm run serve` 用于启动开发服务器，并在浏览器中自动打开网页进行预览。每次修改代码后，开发服务器都会自动重新编译并刷新浏览器，以方便开发调试。
+
+### 打包项目
+
+在完成项目开发后，可以使用以下命令将项目打包成静态资源文件：
+
+```bash
+# 打包项目
+npm run build
+```
+
+在上面的命令中，`npm run build` 用于将项目打包成静态资源文件，并保存到 `dist` 目录中。可以将该目录下的文件上传到服务器进行部署，从而让用户访问你的应用程序。
+
+需要注意的是，在打包项目之前，可以通过修改 `vue.config.js` 文件来进行一些配置，比如自定义构建目录、设置代理、添加插件等。
+
+## 项目上传到服务器
+在使用 Vue CLI 打包项目后，可以将生成的静态资源文件部署到后端服务器上。下面以 Nginx 为例，介绍如何部署 Vue 项目：
+
+1. 将打包生成的 `dist` 目录中的所有文件上传到服务器上。
+2. 安装 Nginx，并创建一个新的 Nginx 配置文件 `/etc/nginx/sites-available/my-project`，其中 `my-project` 是你的项目名称。可以使用以下命令创建该文件：
+
+   ```bash
+   sudo nano /etc/nginx/sites-available/my-project
+   ```
+
+3. 在该配置文件中添加以下内容：
+
+   ```nginx
+   server {
+       listen 80;
+       server_name my-project.com; # 修改为你的域名或者 IP 地址
+
+       root /var/www/my-project; # 修改为你的项目目录
+       index index.html;
+
+       location / {
+           try_files $uri $uri/ /index.html;
+       }
+   }
+
+   ```
+
+   在上面的配置中，`server_name` 表示你的项目对应的域名或者 IP 地址。`root` 表示你的项目所在的目录，如果需要使用别名或者子目录，可以修改为相应的路径。`location` 表示请求的 URL 对应的本地文件路径。由于 Vue Router 是基于 HTML5 History API 实现的，因此需要将所有请求都指向 `index.html` 文件，从而保证能够正确地渲染页面。
+
+4. 创建符号链接 `/etc/nginx/sites-enabled/my-project`，并重启 Nginx：
+
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/my-project /etc/nginx/sites-enabled/
+   sudo systemctl restart nginx
+   ```
+
+   在上面的命令中，`ln -s` 表示创建符号链接，将 `sites-available` 目录下的配置文件链接到 `sites-enabled` 目录中。`systemctl restart nginx` 用于重启 Nginx 服务器，以使新的配置生效。
+
+5. 最后，在浏览器中输入你的域名或者 IP 地址访问应用程序即可。如果一切正常，应该能够看到 Vue 应用程序的页面。
+
+需要注意的是，在部署 Vue 项目时，需要确保后端服务器正确配置了跨域请求，并且在进行 API 请求时需要将请求路径设置为相对路径，比如 `/api/user`。同时，要确保静态资源可以被访问到，并且需要进行安全性、性能等方面的优化和调整。
+
+
+
+## Vue UI 组件库
+
+### 1.移动端常用 UI 组件库
+
+Vant https://youzan.github.io/vant
+
+Cube UI https://didi.github.io/cube-ui
+
+Mint UI http://mint-ui.github.io
+
+### 2. PC 端常用 UI 组件库
+
+Element UI https://element.eleme.cn
+
+IView UI https://www.iviewui.com
