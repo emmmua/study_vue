@@ -85,7 +85,7 @@ vite官网：https://vitejs.cn
   - 真正的按需编译，不再等待整个应用编译完成。
 - 传统构建 与 vite构建对比图
 
-<img src="/public/Bundle_based_dev_server.png" style="width:500px;height:280px;float:left" /><img src="/public/Native_ESM_based_dev_server.png" style="width:480px;height:280px" />
+<img src="/public/Bundle_based_dev_server.png" style="width:480px;height:280px;float:left" /><img src="/public/Native_ESM_based_dev_server.png" style="width:480px;height:280px" />
 
 ```bash
 ## 创建工程
@@ -264,7 +264,7 @@ npm run dev
   
   /* 情况三：监视reactive定义的响应式数据
   			若watch监视的是reactive定义的响应式数据，则无法正确获得oldValue！！
-  			若watch监视的是reactive定义的响应式数据，则强制开启了深度监视 
+  			若watch监视的是reactive定义的响应式数据，则强制开启了深度监视（deep配置无效）
   */
   watch(person,(newValue,oldValue)=>{
   	console.log('person变化了',newValue,oldValue)
@@ -283,7 +283,7 @@ npm run dev
   //特殊情况
   watch(()=>person.job,(newValue,oldValue)=>{
       console.log('person的job变化了',newValue,oldValue)
-  },{deep:true}) //此处由于监视的是reactive素定义的对象中的某个属性，所以deep配置有效
+  },{deep:true}) //此处由于监视的是reactive所定义的对象中的某个属性，所以deep配置有效
   ```
 
 ### 3.watchEffect函数
@@ -308,7 +308,7 @@ npm run dev
 
 ## 8.生命周期
 
-<div style="border:1px solid black;width:380px;float:left;margin-right:20px;"><strong>vue2.x的生命周期</strong><img src="https://cn.vuejs.org/images/lifecycle.png" alt="lifecycle_2" style="zoom:33%;width:1200px" /></div><div style="border:1px solid black;width:510px;height:985px;float:left"><strong>vue3.0的生命周期</strong><img src="https://v3.cn.vuejs.org/images/lifecycle.svg" alt="lifecycle_2" style="zoom:33%;width:2500px" /></div>
+<div style="border:1px solid black;width:380px;float:left;margin-right:20px;"><strong>vue2.x的生命周期</strong><img src="./public/Vue2生命周期.png" alt="lifecycle_2" style="zoom:33%;width:1200px" /></div><div style="border:1px solid black;width:510px;height:985px;float:left"><strong>vue3.0的生命周期</strong><img src="./public/Vue3生命周期.png" alt="lifecycle_2" style="zoom:33%;width:2500px" /></div>
 
 
 
@@ -346,7 +346,21 @@ npm run dev
 
 
 
-1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 - Vue3.0中可以继续使用Vue2.x中的生命周期钩子，但有有两个被更名：
   - ```beforeDestroy```改名为 ```beforeUnmount```
@@ -369,7 +383,59 @@ npm run dev
 
 - 自定义hook的优势: 复用代码, 让setup中的逻辑更清楚易懂。
 
+- 自定义hook函数应该以`use`开头来遵循Vue 3的编码规范。
 
+下面是一个示例自定义hook函数：
+
+```javascript
+import { reactive, toRefs } from 'vue';
+
+export function useCounter(initialValue) {
+  const state = reactive({
+    count: initialValue,
+  });
+
+  const increment = () => {
+    state.count++;
+  };
+
+  const decrement = () => {
+    state.count--;
+  };
+
+  return { ...toRefs(state), increment, decrement };
+}
+```
+
+上述示例代码中，我们定义了一个名为`useCounter`的自定义hook函数，该函数接受一个初始值作为参数，并返回一个包含计数器状态和增加/减少计数器值的方法的对象。
+
+在组件中使用该自定义hook函数：
+
+```javascript
+<template>
+  <div>
+    <p>{{ count }}</p>
+    <button @click="increment">Increment</button>
+    <button @click="decrement">Decrement</button>
+  </div>
+</template>
+
+<script>
+import { useCounter } from './useCounter';
+
+export default {
+  setup() {
+    const { count, increment, decrement } = useCounter(0);
+
+    return { count, increment, decrement };
+  },
+};
+</script>
+```
+
+在上述代码中，我们在组件中导入`useCounter`自定义hook函数，并在`setup`函数中调用该函数以获取计数器状态和操作方法。然后，我们可以像使用任何其他数据属性和方法一样在模板中使用它们。
+
+需要注意的是，自定义hook函数应该以`use`开头来遵循Vue 3的编码规范。
 
 ## 10.toRef
 
@@ -379,6 +445,71 @@ npm run dev
 
 
 - 扩展：```toRefs``` 与```toRef```功能一致，但可以批量创建多个 ref 对象，语法：```toRefs(person)```
+- 使用场景：可以方便地将响应式对象的属性转换为单独的响应式引用，从而实现在组件间传递数据时避免额外创建不必要的响应式数据
+
+下面是一个示例：
+
+```javascript
+import { reactive, toRef } from 'vue';
+
+const state = reactive({
+  name: 'John',
+  age: 30,
+});
+
+const nameRef = toRef(state, 'name');
+
+console.log(nameRef.value); // John
+
+state.name = 'Mary';
+
+console.log(nameRef.value); // Mary
+```
+
+在上述代码中，我们先创建了一个响应式对象`state`，然后使用`toRef`函数将其属性`name`转换为一个单独的响应式引用`nameRef`。由于`nameRef`是一个响应式引用，我们可以通过访问其`value`属性来获取和更新它所代表的值。
+
+需要注意的是，`toRef`不会创建响应式对象，而只是将现有对象的属性转换为可响应的引用。因此，如果需要将整个对象转换为响应式对象，请使用`reactive`函数。
+
+
+
+## 12.toRefs
+
+- 作用：将响应式对象转换为普通对象，其中每个属性都被转换为一个响应式引用。
+- 语法：```const refs = toRefs(target);```
+- 应用:   `toRefs`用于将响应式对象转换为普通对象，以便在不需要响应式功能的情况下，以常规方式访问其属性。
+
+
+- 扩展：```toRefs``` 与```toRef```功能一致，但可以批量创建多个 ref 对象，语法：```toRefs(person)```
+- 使用场景
+
+  - 在父子组件传递props时，使用`toRefs`将父组件传递的响应式对象转换为子组件可直接解构的普通对象；
+  - 在自定义事件中，使用`toRefs`将响应式对象作为payload传递给其他组件；
+  - 在使用第三方库时，将其返回的响应式对象转换为普通对象以避免其副作用影响到整个应用程序；
+
+下面是一个示例：
+
+```javascript
+import { reactive, toRefs } from 'vue';
+
+const state = reactive({
+  name: 'John',
+  age: 30,
+});
+
+const refs = toRefs(state);
+
+console.log(refs.name.value); // John
+
+state.name = 'Mary';
+
+console.log(refs.name.value); // Mary
+```
+
+在上述代码中，我们先创建了一个响应式对象`state`，然后使用`toRefs`函数将其转换为一个包含响应式引用的普通对象`refs`。由于`refs`是一个普通对象，我们可以通过访问其属性来获取和更新其所代表的响应式数据。
+
+需要注意的是，当我们使用解构赋值等操作来提取`toRefs`返回的对象的属性时，必须使用`.value`访问其值，否则会得到一个普通的响应式引用而非实际的属性值。
+
+另外，需要注意的是，`toRefs`只会转换响应式对象的直接属性，而不会递归转换嵌套对象中的属性。如果需要将整个对象及其嵌套属性都转换为响应式对象，请使用`reactive`函数。
 
 
 # 三、其它 Composition API
@@ -392,11 +523,131 @@ npm run dev
   -  如果有一个对象数据，结构比较深, 但变化时只是外层属性变化 ===> shallowReactive。
   -  如果有一个对象数据，后续功能不会修改该对象中的属性，而是生新的对象来替换 ===> shallowRef。
 
+### `shallowReactive`函数
+
+`shallowReactive`函数与`reactive`函数类似，都可以将一个对象转换为响应式对象。不同之处在于，`shallowReactive`只会对对象的第一层属性进行响应式化处理，而不会递归处理嵌套对象的属性。
+
+示例代码如下：
+
+```javascript
+import { shallowReactive } from 'vue';
+
+const state = shallowReactive({
+  name: 'Alice',
+  age: 20,
+  address: {
+    city: 'Beijing',
+    country: 'China',
+  },
+});
+
+console.log(state.name); // 'Alice'
+console.log(state.address.city); // 'Beijing'
+
+state.name = 'Bob'; 
+state.address.city = 'Shanghai';
+
+console.log(state.name); // 'Bob'
+console.log(state.address.city); // 'Shanghai'
+```
+
+可以看到，在上述代码中，我们使用`shallowReactive`函数创建了一个响应式对象。当我们更新顶级属性`name`时，这个变化会被捕获并触发视图更新。但是，当我们更新嵌套在属性`address`中的属性`city`时，由于`address`属性只是一个普通对象，而不是响应式对象，因此它的更改不会触发视图更新。
+
+### `shallowRef`函数
+
+`shallowRef`函数与`ref`函数类似，都可以将一个值转换为响应式数据。不同之处在于，`shallowRef`仅处理值的第一层属性，并不会递归处理嵌套对象或数组的元素。
+
+示例代码如下：
+
+```javascript
+import { shallowRef } from 'vue';
+
+const value = {
+  name: 'Alice',
+  age: 20,
+};
+
+const ref = shallowRef(value);
+
+console.log(ref.value.name); // 'Alice'
+
+ref.value.name = 'Bob';
+console.log(ref.value.name); // 'Bob'
+
+ref.value = {
+  name: 'Charlie',
+  age: 30,
+};
+console.log(ref.value.name); // 'Charlie'
+```
+
+可以看到，在上述代码中，我们使用`shallowRef`函数创建了一个响应式引用。当我们更新顶级属性`name`时，这个变化会被捕获并触发视图更新。但是，当我们更新对象`value`中的嵌套属性时，由于这些属性不是响应式的，因此它们的更改不会触发视图更新。
+
+总之，`shallowReactive`和`shallowRef`都提供了一种浅层次的响应式方案，可以更加精细地控制响应式数据。需要注意的是，由于它们只针对对象的第一层属性进行响应式处理，因此不适用于所有情况。
+
 ## 2.readonly 与 shallowReadonly
 
 - readonly: 让一个响应式数据变为只读的（深只读）。
 - shallowReadonly：让一个响应式数据变为只读的（浅只读）。
 - 应用场景: 不希望数据被修改时。
+
+### `readonly`函数
+
+`readonly`函数可以将一个对象转换为只读对象，即不能对其进行修改。如果尝试修改只读对象，则会打印警告信息并返回原始对象。
+
+示例代码如下：
+
+```javascript
+import { reactive, readonly } from 'vue';
+
+const state = reactive({
+  name: 'Alice',
+  age: 20,
+});
+
+const readonlyState = readonly(state);
+
+console.log(readonlyState.name); // 'Alice'
+
+// 尝试修改只读对象
+readonlyState.name = 'Bob'; // 警告信息：Cannot assign to readonly property
+```
+
+可以看到，在上述代码中，我们使用`readonly`函数创建了一个只读对象`readonlyState`。当我们尝试修改这个只读对象的属性时，由于它是只读的，因此无法进行修改，并且会打印警告信息。
+
+### `shallowReadonly`函数
+
+`shallowReadonly`函数与`readonly`函数类似，都可以将一个对象转换为只读对象。不同之处在于，`shallowReadonly`只会对对象的第一层属性进行只读处理，而不会递归处理嵌套对象的属性。
+
+示例代码如下：
+
+```javascript
+import { reactive, shallowReadonly } from 'vue';
+
+const state = reactive({
+  name: 'Alice',
+  age: 20,
+  address: {
+    city: 'Beijing',
+    country: 'China',
+  },
+});
+
+const readonlyState = shallowReadonly(state);
+
+console.log(readonlyState.name); // 'Alice'
+console.log(readonlyState.address.city); // 'Beijing'
+
+// 尝试修改只读对象
+readonlyState.name = 'Bob'; // 警告信息：Cannot assign to readonly property
+readonlyState.address.city = 'Shanghai'; // 没有警告信息，但是会修改属性
+```
+
+可以看到，在上述代码中，我们使用`shallowReadonly`函数创建了一个只读对象。当我们尝试修改这个只读对象的属性时，由于它是只读的，因此无法进行修改，并且会打印警告信息。另外，由于嵌套在属性`address`中的属性不是只读的，因此我们可以直接修改它。
+
+总之，`readonly`和`shallowReadonly`都提供了一种只读数据方案，可以更加精细地控制响应式数据。需要注意的是，由于`shallowReadonly`只针对对象的第一层属性进行只读处理，因此在处理嵌套数据时可能需要使用`readonly`。
+
+
 
 ## 3.toRaw 与 markRaw
 
@@ -408,6 +659,56 @@ npm run dev
   - 应用场景:
     1. 有些值不应被设置为响应式的，例如复杂的第三方类库等。
     2. 当渲染具有不可变数据源的大列表时，跳过响应式转换可以提高性能。
+
+### `toRaw`函数
+
+`toRaw`函数可以将一个响应式对象转换为其原始的非响应式对象。这样可以在不需要响应式功能的情况下，以常规方式访问其属性。
+
+```javascript
+import { reactive, toRaw } from 'vue';
+
+const state = reactive({
+  name: 'Alice',
+  age: 20,
+});
+
+const rawState = toRaw(state);
+
+console.log(rawState.name); // 'Alice'
+
+// 修改原始对象
+rawState.name = 'Bob';
+
+console.log(state.name); // 'Bob'
+```
+
+可以看到，在上述代码中，我们使用`toRaw`函数将响应式对象`state`转换为其原始的非响应式对象`rawState`。当我们修改`rawState`对象的属性时，由于它已经不再是响应式对象，因此不会触发视图更新，并且会同步地影响到原始的响应式对象`state`。
+
+### `markRaw`函数
+
+`markRaw`函数可以标记一个对象，使其永远不会成为响应式的。这样可以避免一些性能问题和意外的副作用。
+
+示例代码如下：
+
+```javascript
+import { reactive, markRaw } from 'vue';
+
+const state = reactive({
+  name: markRaw('Alice'),
+  age: markRaw(20),
+});
+
+console.log(state.name); // 'Alice'
+
+// 修改标记为非响应式的对象
+state.name = 'Bob';
+
+console.log(state.name); // 'Bob'
+```
+
+可以看到，在上述代码中，我们使用`markRaw`函数将属性`name`和`age`标记为非响应式的。这样，即使在父组件中更新了这些属性，也不会导致子组件重新渲染。
+
+需要注意的是，由于`markRaw`可以绕过Vue的响应式系统，因此应该谨慎使用。通常情况下，只有在特殊情况下才需要使用它，例如当我们需要将一个非响应式的值用作响应式数据的一部分时。
 
 ## 4.customRef
 
@@ -460,7 +761,7 @@ npm run dev
 
 ## 5.provide 与 inject
 
-<img src="https://v3.cn.vuejs.org/images/components_provide.png" style="width:300px" />
+<img src="./public/组合式 API：依赖注入.png" style="width:300px" />
 
 - 作用：实现<strong style="color:#DD5145">祖与后代组件间</strong>通信
 
@@ -504,11 +805,12 @@ npm run dev
 使用传统OptionsAPI中，新增或者修改一个需求，就需要分别在data，methods，computed里修改 。
 
 <div style="width:600px;height:370px;overflow:hidden;float:left">
-    <img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f84e4e2c02424d9a99862ade0a2e4114~tplv-k3u1fbpfcp-watermark.image" style="width:600px;float:left" />
+    <img src="./public/1.image" style="width:600px;float:left" />
 </div>
 <div style="width:300px;height:370px;overflow:hidden;float:left">
-    <img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e5ac7e20d1784887a826f6360768a368~tplv-k3u1fbpfcp-watermark.image" style="zoom:50%;width:560px;left" /> 
+    <img src="./public/2.image" style="zoom:50%;width:560px;left" /> 
 </div>
+
 
 
 
@@ -531,13 +833,13 @@ npm run dev
 
 ## 2.Composition API 的优势
 
-我们可以更加优雅的组织我们的代码，函数。让相关功能的代码更加有序的组织在一起。
+我们可以更加优雅的组织我们的代码，函数。让相关功能的代码更加有序的组织在一起（使用hook函数）。
 
 <div style="width:500px;height:340px;overflow:hidden;float:left">
-    <img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bc0be8211fc54b6c941c036791ba4efe~tplv-k3u1fbpfcp-watermark.image"style="height:360px"/>
+    <img src="./public/3.image"style="height:360px"/>
 </div>
 <div style="width:430px;height:340px;overflow:hidden;float:left">
-    <img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6cc55165c0e34069a75fe36f8712eb80~tplv-k3u1fbpfcp-watermark.image"style="height:360px"/>
+    <img src="./public/4.image"style="height:360px"/>
 </div>
 
 
@@ -583,9 +885,9 @@ npm run dev
 
   - 异步引入组件
 
-    ```js
-    import {defineAsyncComponent} from 'vue'
-    const Child = defineAsyncComponent(()=>import('./components/Child.vue'))
+    ```javascript
+    import {defineAsyncComponent} from 'vue'	// 静态引入
+    const Child = defineAsyncComponent(()=>import('./components/Child.vue'))	// 异步引入
     ```
 
   - 使用```Suspense```包裹组件，并配置好```default``` 与 ```fallback```
