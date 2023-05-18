@@ -511,6 +511,82 @@ console.log(refs.name.value); // Mary
 
 另外，需要注意的是，`toRefs`只会转换响应式对象的直接属性，而不会递归转换嵌套对象中的属性。如果需要将整个对象及其嵌套属性都转换为响应式对象，请使用`reactive`函数。
 
+## 13.基于Vue3的路由创建方式（对比Vue2中使用的）
+
+在 Vue 3 中，可以使用两种方式来创建路由：`createRouter` 和 `VueRouter`。
+
+- `createRouter` 是 Vue 3 新增的路由创建函数，它是一个工厂函数，返回一个新的 `router` 实例。使用该方法需要先引入 `createRouter`，并通过 `use` 方法将其添加到应用程序中。
+
+- `VueRouter` 是 Vue 2 中的路由创建器，在 Vue 3 中也可以继续使用。使用该方式需要先引入 `VueRouter`，然后再创建一个 `VueRouter` 实例。
+
+这两种方式的主要区别在于语法和 API 的不同：
+
+- `createRouter` 采用了新的 Composition API 语法，可以更好地支持 Vue 3 的特性，例如异步组件和动态路由。
+- `VueRouter` 仍然基于 Vue 2 的选项 API 语法，但提供了更多的配置选项和钩子函数。
+
+无论你选择哪种方式，都可以实现相同的路由功能。由于 `createRouter` 更加适合 Vue 3，因此在新项目中推荐使用它。而对于已经采用 `VueRouter` 的旧项目，则可以继续使用它。同时需要注意的是，使用 `VueRouter` 时需要安装 `vue-router@next` 版本。
+
+以下是一些常用的 `createRouter` 的 API：
+
+| API                                                       | 描述                                             |
+| --------------------------------------------------------- | ------------------------------------------------ |
+| `createRouter()`                                          | 创建一个新的路由实例。                           |
+| `router.currentRoute`                                     | 返回当前活动路由对应的 route 对象。              |
+| `router.push(location: RawLocation)`                      | 跳转到一个新的页面，会向历史记录栈添加一个记录。 |
+| `router.replace(location: RawLocation)`                   | 跳转到一个新的页面，但不会留下历史记录。         |
+| `router.go(n: number)`                                    | 在历史记录中向前或向后移动多少步。               |
+| `router.back()`                                           | 后退到前一个历史记录条目。                       |
+| `router.forward()`                                        | 前进到下一个历史记录条目。                       |
+| `router.beforeEach(guard: NavigationGuard)`               | 注册一个全局前置守卫。                           |
+| `router.beforeResolve(guard: NavigationGuard)`            | 注册一个全局解析守卫。                           |
+| `router.afterEach(hook: (to: Route, from: Route) => any)` | 注册一个全局后置钩子。                           |
+
+`createRouter` 函数接收一个路由配置对象作为参数，可选字段如下：
+
+| 属性           | 类型                                                     | 默认值              | 描述                                                         |
+| -------------- | -------------------------------------------------------- | ------------------- | ------------------------------------------------------------ |
+| history        | string \| HashHistory \| BrowserHistory \| MemoryHistory | `"hash"`            | 指定路由模式，支持 `"hash"`、`"history"` 和 `"memory"` 三种。 |
+| routes         | RouteRecordRaw[]                                         | `[]`                | 路由记录数组。                                               |
+| scrollBehavior | ScrollBehavior                                           | -                   | 控制滚动行为。                                               |
+| parseQuery     | (query: string) => Record<string, any>                   | 解析 query 的函数。 |                                                              |
+| stringifyQuery | (query: Record<string, any>) => string                   | 构造 query 的函数。 |                                                              |
+
+下面是一个使用 createRouter 创建路由的示例：
+
+``` js
+// 引入 createRouter 和 createWebHashHistory 函数
+import { createRouter, createWebHashHistory } from 'vue-router';
+
+// 引入组件
+import Home from './views/Home.vue';
+import About from './views/About.vue';
+
+// 定义路由配置
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home,
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: About,
+  },
+];
+
+// 创建路由实例
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes,
+});
+
+// 导出路由实例
+export default router;
+```
+
+上述示例中，我们先使用 `createWebHashHistory` 创建一个 hash 模式的路由历史记录对象，并将其传递给 `createRouter` 方法，然后定义了两个路由规则，最后导出路由实例。
+
 
 # 三、其它 Composition API
 
