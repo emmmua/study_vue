@@ -197,6 +197,7 @@ npm run dev
 -  从使用角度对比：
    -  ref定义的数据：操作数据<strong style="color:#DD5145">需要</strong>```.value```，读取数据时模板中直接读取<strong style="color:#DD5145">不需要</strong>```.value```。
    -  reactive定义的数据：操作数据与读取数据：<strong style="color:#DD5145">均不需要</strong>```.value```。
+   -  ref可以通过deep选项来控制深度监听，而reactive不行，它默认是深度监听。
 
 ## 6.setup的两个注意点
 
