@@ -189,7 +189,7 @@ npm run dev
 
 -  从定义数据角度对比：
    -  ref用来定义：<strong style="color:#DD5145">基本类型数据</strong>。
-   -  reactive用来定义：<strong style="color:#DD5145">对象（或数组）类型数据</strong>。
+   -  reactive用来定义：<strong style="color:#DD5145">对象类型数据</strong>。
    -  备注：ref也可以用来定义<strong style="color:#DD5145">对象（或数组）类型数据</strong>, 它内部会自动通过```reactive```转为<strong style="color:#DD5145">代理对象</strong>。
 -  从原理角度对比：
    -  ref通过``Object.defineProperty()``的```get```与```set```来实现响应式（数据劫持）。
