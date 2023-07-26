@@ -536,6 +536,8 @@ module.exports = defineConfig(config => {
          
          - 总之，作用域插槽提供了一种非常灵活的机制，可以帮助我们将组件的渲染逻辑与组件本身解耦，实现更加清晰和高效的代码。
 
+`slot-scope`和`scope`是相同的关键字，并具有相同的作用。在最新版vue 2.x中，为了提供更加一致的语法，Vue 团队已经废弃了 `scope`，而选择使用 `slot-scope` 来定义插槽的作用域。
+
 ## Vuex
 
 ### 1.概念
